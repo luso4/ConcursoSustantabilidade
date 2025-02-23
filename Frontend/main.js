@@ -1,3 +1,82 @@
+// Import the functions needed from Firebase SDKs
+import { initializeApp } from "firebase/app";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore"; 
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyAFAxzVh5z5erSUKqvSLh5OGxN9bxXrPug",
+  authDomain: "sustentabilidade-cd465.firebaseapp.com",
+  projectId: "sustentabilidade-cd465",
+  storageBucket: "sustentabilidade-cd465.firebasestorage.app",
+  messagingSenderId: "545614370680",
+  appId: "1:545614370680:web:dfef3d8f7c5f44bea49a8d",
+  measurementId: "G-604CWSPS2Z"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
+// Initialize Firebase Authentication and Firestore
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// Handle User Registration
+document.getElementById("registerForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const username = document.getElementById("registerUsername").value;
+  const password = document.getElementById("registerPassword").value;
+
+  try {
+    // Create a new user with Firebase Authentication
+    const userCredential = await createUserWithEmailAndPassword(auth, `${username}@gmail.com`, password);
+    const user = userCredential.user;
+
+    // Save user data to Firestore
+    await setDoc(doc(db, "users", user.uid), {
+      username: username
+    });
+
+    alert('User created successfully');
+  } catch (error) {
+    console.error('Error creating user:', error);
+    alert(error.message);
+  }
+});
+
+// Handle User Login
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const username = document.getElementById("loginUsername").value;
+  const password = document.getElementById("loginPassword").value;
+
+  try {
+    // Attempt login using Firebase Authentication
+    const userCredential = await signInWithEmailAndPassword(auth, `${username}@gmail.com`, password);
+    const user = userCredential.user;
+
+    // Retrieve user data from Firestore
+    const docSnap = await getDoc(doc(db, "users", user.uid));
+    if (docSnap.exists()) {
+      const userData = docSnap.data();
+      alert('Login successful. Welcome ' + userData.username);
+    } else {
+      alert('No user data found');
+    }
+  } catch (error) {
+    console.error('Error logging in:', error);
+    alert(error.message);
+  }
+});
+
+
+
+
+
+
+
 // Função para carregar o scoreboard do back-end e exibir na página
 function carregarScoreboard() {
     fetch('http://localhost:5000/scoreboard')
@@ -62,4 +141,6 @@ function carregarScoreboard() {
       }
     }, 100);
   }
+
+  
   
