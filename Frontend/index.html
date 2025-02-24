@@ -4,60 +4,50 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Meu Site com QR Code</title>
+
+  <!-- Link to external CSS file -->
+  <link rel="stylesheet" href="stylesIndex.css">
+
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f4f4f9;
-    }
-    header {
-      background-color: #4CAF50;
-      padding: 20px;
-      color: white;
-      text-align: center;
-    }
-    #scoreboard {
-      margin: 20px;
-      padding: 10px;
-      background-color: white;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-    #scoreboard div {
-      padding: 10px;
-      border-bottom: 1px solid #eee;
-    }
-    #scoreboard div:last-child {
-      border-bottom: none;
-    }
-    #scanQRCodeButton {
-      padding: 10px 20px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      margin: 20px;
-    }
-    #scanQRCodeButton:hover {
-      background-color: #45a049;
-    }
-    #video {
-      display: none;
-      width: 100%;
-      height: auto;
-    }
-    canvas {
-      display: none;
-    }
-  </style>
+  <script type="module">
+    // Import Firebase SDKs
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+    // Your Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAFAxzVh5z5erSUKqvSLh5OGxN9bxXrPug",
+      authDomain: "sustentabilidade-cd465.firebaseapp.com",
+      databaseURL: "https://sustentabilidade-cd465-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "sustentabilidade-cd465",
+      storageBucket: "sustentabilidade-cd465.firebasestorage.app",
+      messagingSenderId: "545614370680",
+      appId: "1:545614370680:web:dfef3d8f7c5f44bea49a8d",
+      measurementId: "G-604CWSPS2Z"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Monitor authentication state
+    onAuthStateChanged(auth, user => {
+      const welcomeMessage = document.getElementById('userWelcomeMessage');
+      if (user) {
+        welcomeMessage.textContent = `Bem-vindo, ${user.displayName || user.email}!`;
+      } else {
+        welcomeMessage.textContent = 'Você não está logado.';
+      }
+    });
+  </script>
 </head>
 <body>
 
   <header>
     <h1>Bem-vindo ao Sistema de Pontuação</h1>
+    <p id="userWelcomeMessage"></p> <!-- Display logged-in user info -->
   </header>
 
   <!-- Scoreboard Section -->
@@ -76,6 +66,12 @@
   <canvas id="canvas"></canvas>
 
   <script>
+    // Variável global para armazenar o score dos jogadores
+    let scoreboard = [
+        { nome: "Jogador 1", pontos: 150 },
+        { nome: "Jogador 2", pontos: 120 }
+    ];
+
     // Função para carregar o scoreboard do back-end e exibir na página
     function carregarScoreboard() {
       fetch('http://localhost:5000/scoreboard')
@@ -118,72 +114,50 @@
         });
     });
 
-    // Variável global para armazenar o score dos jogadores
-    let scoreboard = [
-        { nome: "Jogador 1", pontos: 150 },
-        { nome: "Jogador 2", pontos: 120 }
-    ];
-
+    // Função para detectar o QR Code
     function detectarQRCode(video, canvas, context) {
-    setInterval(function() {
+      setInterval(function() {
         if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        // Atualiza o canvas com o conteúdo do vídeo
-        canvas.height = video.videoHeight;
-        canvas.width = video.videoWidth;
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+          canvas.height = video.videoHeight;
+          canvas.width = video.videoWidth;
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        // Lê os dados da imagem do canvas
-        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-        const qrCode = jsQR(imageData.data, canvas.width, canvas.height);
+          const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+          const qrCode = jsQR(imageData.data, canvas.width, canvas.height);
 
-        if (qrCode) {
-            // Quando um QR Code for detectado, mostra o conteúdo
-            console.log('QR Code detectado: ' + qrCode.data); // Log apenas para depuração
-
-            // Verifica se o QR Code é igual a um valor específico
+          if (qrCode) {
+            console.log('QR Code detectado: ' + qrCode.data);
             if (qrCode.data === 'https://qrco.de/bfm6Ip') {
-            // Encontrou o QR Code correto - adiciona 10 pontos ao Jogador 1
-            addPoints("Jogador 1", 10);
-        }
-        
-        // Aqui você pode verificar outros QR Codes, se necessário
-        // Exemplo:
-        // else if (qrCode.data === 'outro-codigo') {
-        //   addPoints("Jogador 2", 10);
-        // }
+              addPoints("Jogador 1", 10);
+            }
 
-        // Fechar a câmera após ler o QR Code
-        video.srcObject.getTracks().forEach(track => track.stop());
-        video.style.display = 'none';
+            video.srcObject.getTracks().forEach(track => track.stop());
+            video.style.display = 'none';
+          }
         }
-        }
-    }, 100); // Checa a cada 100ms
+      }, 100);
     }
 
     // Função para adicionar pontos ao jogador
     function addPoints(nomeJogador, pontos) {
-        // Encontra o jogador pelo nome e adiciona os pontos
-        const jogador = scoreboard.find(jogador => jogador.nome === nomeJogador);
-        if (jogador) {
-            jogador.pontos += pontos; // Adiciona os pontos
-            console.log(`${nomeJogador} agora tem ${jogador.pontos} pontos.`);
-            atualizarScoreboard(); // Atualiza a interface com o novo score
-        }
+      const jogador = scoreboard.find(jogador => jogador.nome === nomeJogador);
+      if (jogador) {
+        jogador.pontos += pontos;
+        console.log(`${nomeJogador} agora tem ${jogador.pontos} pontos.`);
+        atualizarScoreboard();
+      }
     }
 
-        // Função para atualizar o scoreboard na página
-        function atualizarScoreboard() {
-        const scoreboardDiv = document.getElementById('scoreboard');
-        scoreboardDiv.innerHTML = ''; // Limpar conteúdo anterior
-  
-        // Adicionar os jogadores e seus pontos ao scoreboard
-        scoreboard.forEach(jogador => {
+    // Função para atualizar o scoreboard na página
+    function atualizarScoreboard() {
+      const scoreboardDiv = document.getElementById('scoreboard');
+      scoreboardDiv.innerHTML = ''; 
+      scoreboard.forEach(jogador => {
         const jogadorDiv = document.createElement('div');
         jogadorDiv.textContent = `${jogador.nome}: ${jogador.pontos} pontos`;
         scoreboardDiv.appendChild(jogadorDiv);
-    });
+      });
     }
-
   </script>
 </body>
 </html>
