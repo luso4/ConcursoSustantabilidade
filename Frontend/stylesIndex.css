@@ -75,3 +75,9 @@ button:hover {
 canvas {
     display: none;
 }
+
+.highlighted-user {
+    background-color: #ffeb3b; /* Yellow color for highlighting */
+    font-weight: bold;
+    color: black;
+  }

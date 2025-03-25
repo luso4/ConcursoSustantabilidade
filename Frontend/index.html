@@ -4,18 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Meu Site com QR Code</title>
-
-  <!-- Link to external CSS file -->
   <link rel="stylesheet" href="stylesIndex.css">
-
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
   <script type="module">
     // Import Firebase SDKs
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-    import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, query, orderBy, limit, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-    // Your Firebase config
+    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyAFAxzVh5z5erSUKqvSLh5OGxN9bxXrPug",
       authDomain: "sustentabilidade-cd465.firebaseapp.com",
@@ -32,90 +29,95 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    // Highlighted user styling
+    const HIGHLIGHT_COLOR = '#ffeb3b';
+
     // Monitor authentication state
     onAuthStateChanged(auth, user => {
       const welcomeMessage = document.getElementById('userWelcomeMessage');
+      const userPointsElement = document.getElementById('userPoints');
+
       if (user) {
-        welcomeMessage.textContent = `Bem-vindo, ${user.displayName || user.email}!`;
+        welcomeMessage.textContent = `Bem-vindo, ${user.displayName || user.email}`;
+
+        // Fetch user points using the user's UID
+        checkUserPoints(user.uid, userPointsElement, user);
+
+        // Start QR code detection when button is clicked
+        document.getElementById('scanQRCodeButton').addEventListener('click', function() {
+          const video = document.getElementById('video');
+          const canvas = document.getElementById('canvas');
+          const context = canvas.getContext('2d');
+          video.style.display = 'block';
+
+          // Access device's camera
+          navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+            .then(function(stream) {
+              video.srcObject = stream;
+              video.play();
+              // Detect QR Code periodically
+              detectarQRCode(video, canvas, context, user);
+            })
+            .catch(function(error) {
+              console.error('Erro ao acessar a câmera: ', error);
+            });
+        });
       } else {
         welcomeMessage.textContent = 'Você não está logado.';
+        userPointsElement.textContent = ''; // Clear points when not logged in
       }
     });
-  </script>
-</head>
-<body>
 
-  <header>
-    <h1>Bem-vindo ao Sistema de Pontuação</h1>
-    <p id="userWelcomeMessage"></p> <!-- Display logged-in user info -->
-  </header>
+    // Function to check user points and create document if it doesn't exist
+    function checkUserPoints(userId, userPointsElement, user) {
+      const userRef = doc(db, "scoreboard", userId);
 
-  <!-- Scoreboard Section -->
-  <section>
-    <h2>Scoreboard</h2>
-    <div id="scoreboard">
-      <!-- Os dados do scoreboard serão carregados aqui -->
-    </div>
-  </section>
-
-  <!-- Botão para Ativar a Câmera -->
-  <button id="scanQRCodeButton">Ativar Câmera e Ler QR Code</button>
-
-  <!-- Câmera para escanear QR Code -->
-  <video id="video" width="300" height="300"></video>
-  <canvas id="canvas"></canvas>
-
-  <script>
-    // Variável global para armazenar o score dos jogadores
-    let scoreboard = [
-        { nome: "Jogador 1", pontos: 150 },
-        { nome: "Jogador 2", pontos: 120 }
-    ];
-
-    // Função para carregar o scoreboard do back-end e exibir na página
-    function carregarScoreboard() {
-      fetch('http://localhost:5000/scoreboard')
-        .then(response => response.json())
-        .then(data => {
-          const scoreboardDiv = document.getElementById('scoreboard');
-          scoreboardDiv.innerHTML = ''; // Limpar conteúdo anterior
-          
-          data.forEach(jogador => {
-            const jogadorDiv = document.createElement('div');
-            jogadorDiv.textContent = `${jogador.nome}: ${jogador.pontos} pontos`;
-            scoreboardDiv.appendChild(jogadorDiv);
-          });
-        })
-        .catch(error => {
-          console.error('Erro ao carregar o scoreboard:', error);
-        });
+      getDoc(userRef).then(docSnap => {
+        if (docSnap.exists()) {
+          const userData = docSnap.data();
+          userPointsElement.textContent = `Pontos: ${userData.points || 0}`;
+        } else {
+          setDoc(userRef, { points: 0, email: user.email })
+            .then(() => {
+              userPointsElement.textContent = 'Pontos: 0';
+            })
+            .catch(error => {
+              console.error("Error creating user document:", error);
+              userPointsElement.textContent = 'Erro ao carregar pontos.';
+            });
+        }
+      }).catch(error => {
+        console.error("Erro ao obter dados do usuário:", error);
+        userPointsElement.textContent = 'Erro ao carregar pontos.';
+      });
     }
 
-    // Chama a função para carregar o scoreboard assim que a página for carregada
-    window.onload = carregarScoreboard;
+    // Function to add points to the logged-in user
+    function addPoints(userId, pointsToAdd) {
+      const userRef = doc(db, "scoreboard", userId);
 
-    // Ativar a câmera do celular para escanear QR Code
-    document.getElementById('scanQRCodeButton').addEventListener('click', function() {
-      const video = document.getElementById('video');
-      const canvas = document.getElementById('canvas');
-      const context = canvas.getContext('2d');
-      video.style.display = 'block';
+      getDoc(userRef).then(docSnap => {
+        if (docSnap.exists()) {
+          const userData = docSnap.data();
+          const newPoints = userData.points + pointsToAdd;
 
-      // Acessar a câmera do dispositivo
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-        .then(function(stream) {
-          video.srcObject = stream;
-          video.play();
-          // Detectar QR Code periodicamente
-          detectarQRCode(video, canvas, context);
-        })
-        .catch(function(error) {
-          console.error('Erro ao acessar a câmera: ', error);
-        });
-    });
+          updateDoc(userRef, { points: newPoints })
+            .then(() => {
+              const userPointsElement = document.getElementById('userPoints');
+              userPointsElement.textContent = `Pontos: ${newPoints}`;
+              displayTop3Users(); // Refresh the top 3 users list
+            })
+            .catch(error => {
+              console.error("Erro ao atualizar os pontos:", error);
+            });
+        }
+      }).catch((error) => {
+        console.error("Erro ao obter os dados do usuário:", error);
+      });
+    }
 
-    // Função para detectar o QR Code
-    function detectarQRCode(video, canvas, context) {
+    // Function to detect QR Code and add points if the QR code matches
+    function detectarQRCode(video, canvas, context, user) {
       setInterval(function() {
         if (video.readyState === video.HAVE_ENOUGH_DATA) {
           canvas.height = video.videoHeight;
@@ -126,9 +128,8 @@
           const qrCode = jsQR(imageData.data, canvas.width, canvas.height);
 
           if (qrCode) {
-            console.log('QR Code detectado: ' + qrCode.data);
-            if (qrCode.data === 'https://qrco.de/bfm6Ip') {
-              addPoints("Jogador 1", 10);
+            if (qrCode.data === 'https://qrco.de/bfm6Ip') { // Matching QR Code
+              addPoints(user.uid, 10); // Pass user UID to add points
             }
 
             video.srcObject.getTracks().forEach(track => track.stop());
@@ -138,26 +139,66 @@
       }, 100);
     }
 
-    // Função para adicionar pontos ao jogador
-    function addPoints(nomeJogador, pontos) {
-      const jogador = scoreboard.find(jogador => jogador.nome === nomeJogador);
-      if (jogador) {
-        jogador.pontos += pontos;
-        console.log(`${nomeJogador} agora tem ${jogador.pontos} pontos.`);
-        atualizarScoreboard();
-      }
-    }
+    // Function to display the top 3 users with real-time updates
+    function displayTop3Users() {
+      const scoreboardRef = collection(db, "scoreboard");
+      const q = query(scoreboardRef, orderBy("points", "desc"), limit(3));
 
-    // Função para atualizar o scoreboard na página
-    function atualizarScoreboard() {
-      const scoreboardDiv = document.getElementById('scoreboard');
-      scoreboardDiv.innerHTML = ''; 
-      scoreboard.forEach(jogador => {
-        const jogadorDiv = document.createElement('div');
-        jogadorDiv.textContent = `${jogador.nome}: ${jogador.pontos} pontos`;
-        scoreboardDiv.appendChild(jogadorDiv);
+      // Real-time updates with onSnapshot
+      onSnapshot(q, querySnapshot => {
+        let top3Users = [];
+        querySnapshot.forEach(doc => {
+          const userData = doc.data();
+          top3Users.push({ uid: doc.id, ...userData });
+        });
+
+        displayTop3UsersInHTML(top3Users); // Refresh the leaderboard
+      }, error => {
+        console.error("Error listening to scoreboard changes:", error);
       });
     }
+
+    // Function to display the top 3 users in HTML
+    function displayTop3UsersInHTML(top3Users) {
+      const auth = getAuth();
+      const scoreboardElement = document.getElementById("scoreboard");
+      scoreboardElement.innerHTML = ""; // Clear previous scoreboard data
+
+      top3Users.forEach(user => {
+        const userEmail = user.email;
+        const userPoints = user.points;
+        const userDiv = document.createElement("div");
+
+        // Highlight the logged-in user
+        if (auth.currentUser && auth.currentUser.email === userEmail) {
+          userDiv.style.backgroundColor = HIGHLIGHT_COLOR; // Apply highlight color
+          userDiv.style.fontWeight = 'bold';
+        }
+
+        userDiv.textContent = `${userEmail}: ${userPoints} pontos`;
+        scoreboardElement.appendChild(userDiv);
+      });
+    }
+
+    // Initial call to display top 3 users when the page loads
+    displayTop3Users();
   </script>
+</head>
+<body>
+  <header>
+    <h1>Bem-vindo ao Sistema de Pontuação</h1>
+    <p id="userWelcomeMessage"></p>
+  </header>
+
+  <section>
+    <h2>Scoreboard</h2>
+    <div id="scoreboard"></div>
+  </section>
+
+  <p id="userPoints"></p>
+  <button id="scanQRCodeButton">Ativar Câmera e Ler QR Code</button>
+
+  <video id="video" width="300" height="300" style="display:none;"></video>
+  <canvas id="canvas" style="display:none;"></canvas>
 </body>
 </html>

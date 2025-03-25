@@ -1,0 +1,77 @@
+/* General body styling to center everything */
+html, body {
+    height: 100%;  /* Ensure the body takes the full viewport height */
+    margin: 0;  /* Remove default margin */
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f0f0f0;
+  }
+  
+  /* Container for both forms */
+  .form-container {
+    display: flex;
+    flex-direction: column;  /* Stack the forms vertically */
+    justify-content: center; /* Vertically center the forms */
+    align-items: center;     /* Horizontally center the forms */
+    gap: 20px;  /* Space between the forms */
+    padding: 20px;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 600px; /* Limiting maximum width */
+  }
+  
+  /* Style the individual form boxes */
+  .form-box {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    width: 100%; /* Form should take the available width */
+    max-width: 350px; /* Fixed width for the form */
+    border-radius: 10px;
+    background-color: #fff;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Add a gap between form elements */
+  .form-input {
+    width: 100%;
+    margin-bottom: 15px;
+  }
+  
+  /* Style the input fields and buttons */
+  #loginForm input,
+  #loginForm button,
+  #registerForm input,
+  #registerForm button {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  #loginForm button,
+  #registerForm button {
+    background-color: #4CAF50;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  #loginForm button:hover,
+  #registerForm button:hover {
+    background-color: #45a049;
+  }
+  
+  /* Error message styling */
+  #loginErrorMessage,
+  #registerErrorMessage {
+    font-size: 14px;
+    color: red;
+    margin-top: 10px;
+  }
+  
