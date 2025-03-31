@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-text-id="index-title">Regras</title>
+  <link rel="stylesheet" href="stylesIndex.css">
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+
+  <script>
+    // Event listener to start the QR scanner when button is clicked
+    document.getElementById('scanQRCodeButton').addEventListener('click', initializeQRScanner);
+  </script>
+
+  <script type="module">
+    // Import Firebase SDKs
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, query, orderBy, limit, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAFAxzVh5z5erSUKqvSLh5OGxN9bxXrPug",
+      authDomain: "sustentabilidade-cd465.firebaseapp.com",
+      databaseURL: "https://sustentabilidade-cd465-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "sustentabilidade-cd465",
+      storageBucket: "sustentabilidade-cd465.firebasestorage.app",
+      messagingSenderId: "545614370680",
+      appId: "1:545614370680:web:dfef3d8f7c5f44bea49a8d",
+      measurementId: "G-604CWSPS2Z"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Function to change language
+    function changeLanguage(language) {
+      const textElements = document.querySelectorAll("[data-text-id]");
+
+      textElements.forEach((element) => {
+        const textId = element.getAttribute("data-text-id");
+        fetchTextFromFirestore(textId, language)
+          .then((text) => {
+            if (text) {
+              console.log(`Fetched text for ${textId}: ${text}`);
+              element.textContent = text; // Set fetched text or keep existing
+            } else {
+              console.warn(`Text not found for ${textId} in ${language}`);
+            }
+          });
+      });
+
+      // Save the selected language in localStorage
+      localStorage.setItem("selectedLanguage", language);
+    }
+
+    // Fetch text content from Firestore
+    function fetchTextFromFirestore(textId, language) {
+      const docRef = doc(db, "text", textId);
+      console.log(`Fetching text for ${textId} in ${language}`);
+      return getDoc(docRef).then((docSnap) => {
+        if (docSnap.exists()) {
+          const docData = docSnap.data();
+          const translatedText = docData[language];
+          console.log(`Fetched translated text: ${translatedText}`);
+          return translatedText || null;
+        }
+        console.warn(`No document found for ${textId}`);
+        return null;
+      }).catch((error) => {
+        console.error("Error fetching text from Firestore:", error);
+        return null;
+      });
+    }
+
+    // Function to apply the saved language when the page loads
+    function applySavedLanguage() {
+      const savedLanguage = localStorage.getItem("selectedLanguage") || "pt"; // Default to Portuguese if no language is saved
+      changeLanguage(savedLanguage);
+    }
+
+    // Set up event listeners for language selection
+    document.querySelector(".pt").addEventListener("click", () => {
+      changeLanguage("pt");
+    });
+
+    document.querySelector(".en").addEventListener("click", () => {
+      changeLanguage("en");
+    });
+
+    // Monitor authentication state
+    onAuthStateChanged(auth, user => {
+      const welcomeMessage = document.getElementById('userWelcomeMessage');
+      const userPointsElement = document.getElementById('userPoints');
+
+      if (user) {
+        welcomeMessage.textContent = `Bem-vindo, ${user.displayName || user.email}`;
+
+        // Fetch user points using the user's UID
+        checkUserPoints(user.uid, userPointsElement, user);
+      } else {
+        welcomeMessage.textContent = 'Você não está logado.';
+        userPointsElement.textContent = ''; // Clear points when not logged in
+      }
+    });
+
+    // Call the function to apply the saved language when the page loads
+    window.onload = function() {
+      applySavedLanguage();
+    };
+  </script>
+</head>
+<body>
+  <header>
+    <h1 id="1" data-text-id="intro">Bem-vindo ao Sistema de Pontuação</h1>
+
+    <nav>
+      <ul class="nav-list">
+        <li><a href="index.html" data-text-id="home-link">Início</a></li>
+        <li><a href="rules.html" data-text-id="rules-link">Regras</a></li>
+        <li><a href="tablePoints.html" data-text-id="point-link">Tabela de Pontos</a></li>
+        <li class="language-option">
+          <a href="#pt" class="pt">
+            <img src="images/Por-Flag.png" alt="Portuguese" class="language-flag" />
+          </a>
+        </li>
+        <li class="language-option">
+          <a href="#en" class="en">
+            <img src="images/transferirIng.png" alt="English" class="language-flag" />
+          </a>
+        </li>
+      </ul>
+    </nav>
+    
+    <p id="userWelcomeMessage"></p>
+  </header>
+
+  <h1 data-text-id="rules-title-index">
+    This is a sample text
+  </h3>
+
+  <p id="rulesText" data-text-id="rules-text-index">
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+  </p>
+</body>
+</html>

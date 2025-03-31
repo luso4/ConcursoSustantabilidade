@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regras</title>
+  <link rel="stylesheet" href="stylesIndex.css">
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+
+  <script>
+    // Play Button redirection function
+    function redirectToGame() {
+      window.location.href = "index.html";
+    }
+  </script>
+
+
+  <script type="module">
+    // Import Firebase SDKs
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, query, orderBy, limit, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAFAxzVh5z5erSUKqvSLh5OGxN9bxXrPug",
+      authDomain: "sustentabilidade-cd465.firebaseapp.com",
+      databaseURL: "https://sustentabilidade-cd465-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "sustentabilidade-cd465",
+      storageBucket: "sustentabilidade-cd465.firebasestorage.app",
+      messagingSenderId: "545614370680",
+      appId: "1:545614370680:web:dfef3d8f7c5f44bea49a8d",
+      measurementId: "G-604CWSPS2Z"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Monitor authentication state
+    onAuthStateChanged(auth, user => {
+      const welcomeMessage = document.getElementById('userWelcomeMessage');
+      const userPointsElement = document.getElementById('userPoints');
+
+      if (user) {
+        welcomeMessage.textContent = `Bem-vindo, ${user.displayName || user.email}`;
+
+      } else {
+        welcomeMessage.textContent = 'Você não está logado.';
+        userPointsElement.textContent = ''; // Clear points when not logged in
+      }
+    });
+  </script>
+</head>
+<body>
+  <header>
+    <h1>Bem-vindo as Regras do Concurso</h1>
+    <p id="userWelcomeMessage"></p>
+  </header>
+
+    <!--Title of the Rules-->
+    <h1>
+      This is an sample text
+    </h1>
+    <!--Text of the Rules-->
+    <p id ="rulesText">
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+    </p>
+
+    <button id="playButton" onclick="redirectToGame()">Jogar</button>
+</body>
+</html>

@@ -66,8 +66,10 @@ button:hover {
     background-color: #45a049;
 }
 
-#video {
-    display: none;
+/* Styling video with border when active */
+#video.active {
+    display: block;
+    border: 3px solid #ffeb3b; /* Golden border when scanning */
     width: 100%;
     height: auto;
 }
@@ -76,8 +78,128 @@ canvas {
     display: none;
 }
 
-.highlighted-user {
-    background-color: #ffeb3b; /* Yellow color for highlighting */
+#rulesText {
+    margin-left: 10%;
+    margin-right: 10%;
+    text-align: left;
+}
+
+nav {
+    background-color: #333;
+    padding: 10px 0;
+  }
+  
+  .nav-list {
+    display: flex;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .nav-list li {
+    margin: 0 20px;
+  }
+  
+  .nav-list a {
+    color: white;
+    text-decoration: none;
     font-weight: bold;
-    color: black;
+    font-size: 18px;
+  }
+  
+  .nav-list a:hover {
+    color: #ffeb3b;
+  }
+  
+  .language-option {
+    font-size: 16px;
+  }
+  
+  /* Style for active section */
+  section {
+    padding: 50px;
+    margin-top: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+
+/* Language Flags Styling */
+.language-option {
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end; /* Align language flags to the right */
+    margin-left: auto; /* Push language flags to the right */
+}
+
+.language-option a {
+    display: flex;
+    align-items: center;
+}
+
+.language-option img {
+    width: 30px; /* Set flag width */
+    height: auto;
+    margin-left: 10px; /* Space between flags */
+}
+
+.language-option a:hover img {
+    opacity: 0.8;
+}
+
+
+#scoreTable {
+    margin-left: 5%;
+    margin-right: 5%;
+    width: 90%; /* Faz com que a tabela ocupe 90% da largura da página */
+    border-collapse: collapse; /* Remove espaços entre as células */
+  }
+
+  /* Estilo do cabeçalho da tabela */
+  #scoreTable thead {
+    background-color: #f1f1f1; /* Fundo cinza claro */
+    text-align: left; /* Alinha o texto à esquerda */
+  }
+
+  /* Estilo para as células do cabeçalho */
+  #scoreTable th {
+    padding: 10px;
+    border: 1px solid #ddd; /* Linha fina e cinza para separar as células */
+  }
+
+  /* Estilo para as células do corpo da tabela */
+  #scoreTable td {
+    padding: 10px;
+    border: 1px solid #ddd; /* Linha fina e cinza para separar as células */
+  }
+
+  /* Alinha o conteúdo no meio das células */
+  #scoreTable td, #scoreTable th {
+    text-align: center;
+  }
+
+  /* Adiciona um efeito de alternância de cor nas linhas da tabela */
+  #scoreTable tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+
+  #scoreTable tbody tr:hover {
+    background-color: #e0e0e0; /* Destaca a linha ao passar o mouse */
+  }
+  
+
+/* Add mobile responsiveness */
+@media (max-width: 768px) {
+    .nav-list {
+      flex-direction: column;
+      align-items: center;
+    }
+  
+    .nav-list li {
+      margin-bottom: 10px;
+    }
+
+    .language-option {
+        margin-left: 0; /* Align flags properly when stacked */
+      }
   }

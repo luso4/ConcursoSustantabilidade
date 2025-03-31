@@ -69,6 +69,9 @@
         });
 
         alert('User created successfully');
+        
+        // Redirect to login page or welcome page after successful registration
+        window.location.href = 'regrasConcurso.html'; // Adjust to where you want the user to go after registration
       } catch (error) {
         console.error('Error creating user:', error);
         errorMessageDiv.innerHTML = error.message;  // Show error message in the form
@@ -93,8 +96,8 @@
 
         alert('Login successful');
 
-        // Redirect to index.html after successful login
-        window.location.href = 'index.html';
+        // Redirect to regrasConcurso.html after successful login
+        window.location.href = 'regrasConcurso.html'; // This should be the correct destination page
       } catch (error) {
         console.error('Error logging in:', error);
         errorMessageDiv.innerHTML = error.message;  // Show error message in the form

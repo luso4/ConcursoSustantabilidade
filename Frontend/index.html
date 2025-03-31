@@ -3,9 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Meu Site com QR Code</title>
+  <title data-text-id="index-title">Meu Site com QR Code</title>
   <link rel="stylesheet" href="stylesIndex.css">
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+
+  <script>
+    // Event listener to start the QR scanner when button is clicked
+    document.getElementById('scanQRCodeButton').addEventListener('click', initializeQRScanner);
+  </script>
+
   <script type="module">
     // Import Firebase SDKs
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
@@ -29,6 +35,65 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    // Function to change language
+    function changeLanguage(language) {
+      const textElements = document.querySelectorAll("[data-text-id]");
+
+      textElements.forEach((element) => {
+        const textId = element.getAttribute("data-text-id");
+        fetchTextFromFirestore(textId, language)
+          .then((text) => {
+            if (text) {
+              console.log(`Fetched text for ${textId}: ${text}`);
+              element.textContent = text; // Set fetched text or keep existing
+            } else {
+              console.warn(`Text not found for ${textId} in ${language}`);
+            }
+          });
+      });
+    // Save the selected language in localStorage
+    localStorage.setItem("selectedLanguage", language);
+    }
+
+    // Fetch text content from Firestore
+    function fetchTextFromFirestore(textId, language) {
+      const docRef = doc(db, "text", textId);
+      console.log(`Fetching text for ${textId} in ${language}`);
+      return getDoc(docRef).then((docSnap) => {
+        if (docSnap.exists()) {
+          const docData = docSnap.data();
+          const translatedText = docData[language];
+          console.log(`Fetched translated text: ${translatedText}`);
+          return translatedText || null;
+        }
+        console.warn(`No document found for ${textId}`);
+        return null;
+      }).catch((error) => {
+        console.error("Error fetching text from Firestore:", error);
+        return null;
+      });
+    }
+
+    // Function to apply the saved language when the page loads
+    function applySavedLanguage() {
+      const savedLanguage = localStorage.getItem("selectedLanguage") || "pt"; // Default to Portuguese if no language is saved
+      changeLanguage(savedLanguage);
+    }
+
+    // Set up event listeners for language selection
+    document.querySelector(".pt").addEventListener("click", () => {
+      changeLanguage("pt");
+    });
+
+    document.querySelector(".en").addEventListener("click", () => {
+      changeLanguage("en");
+    });
+
+    // Call the function to apply the saved language when the page loads
+    window.onload = function() {
+      applySavedLanguage();
+    };
+
     // Highlighted user styling
     const HIGHLIGHT_COLOR = '#ffeb3b';
 
@@ -48,6 +113,9 @@
           const video = document.getElementById('video');
           const canvas = document.getElementById('canvas');
           const context = canvas.getContext('2d');
+          
+          // Add 'active' class to show the border
+          video.classList.add('active');
           video.style.display = 'block';
 
           // Access device's camera
@@ -134,6 +202,7 @@
 
             video.srcObject.getTracks().forEach(track => track.stop());
             video.style.display = 'none';
+            video.classList.remove('active'); // Remove border after stopping the scan
           }
         }
       }, 100);
@@ -186,19 +255,46 @@
 </head>
 <body>
   <header>
-    <h1>Bem-vindo ao Sistema de Pontuação</h1>
+    <h1 id="1" data-text-id="intro">Bem-vindo ao Sistema de Pontuação</h1>
+
+    <nav>
+      <ul class="nav-list">
+        <li><a href="index.html" data-text-id="home-link">Início</a></li>
+        <li><a href="rules.html" data-text-id="rules-link">Regras</a></li>
+        <li><a href="tablePoints.html" data-text-id="point-link">Tabela de Pontos</a></li>
+        <li class="language-option">
+          <a href="#pt" class="pt">
+            <img src="images/Por-Flag.png" alt="Portuguese" class="language-flag" />
+          </a>
+        </li>
+        <li class="language-option">
+          <a href="#en" class="en">
+            <img src="images/transferirIng.png" alt="English" class="language-flag" />
+          </a>
+        </li>
+      </ul>
+    </nav>
+    
     <p id="userWelcomeMessage"></p>
   </header>
 
   <section>
-    <h2>Scoreboard</h2>
+    <h2 data-text-id="scoreboard-title">Tabela de Pontuação</h2>
     <div id="scoreboard"></div>
   </section>
 
-  <p id="userPoints"></p>
-  <button id="scanQRCodeButton">Ativar Câmera e Ler QR Code</button>
+  <p id="userPoints" data-text-id="user-points">Pontos: 0</p>
+  <button id="scanQRCodeButton" data-text-id="scan-button">Ativar a Câmera e Ler QR Code</button>
 
   <video id="video" width="300" height="300" style="display:none;"></video>
   <canvas id="canvas" style="display:none;"></canvas>
+
+  <h3 data-text-id="rules-title-index">
+    This is a sample text
+  </h3>
+
+  <p id="rulesText" data-text-id="rules-text-index">
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+  </p>
 </body>
 </html>
