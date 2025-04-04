@@ -188,7 +188,7 @@ nav {
     }
   
 
-    @media (max-width: 768px) {
+    @media (max-width: 400px) {
         nav {
           justify-content: center; /* Center nav items on small screens */
         }
