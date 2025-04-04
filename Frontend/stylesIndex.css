@@ -149,57 +149,63 @@ nav {
 
 
 #scoreTable {
-    margin-left: 5%;
-    margin-right: 5%;
-    width: 90%; /* Faz com que a tabela ocupe 90% da largura da página */
-    border-collapse: collapse; /* Remove espaços entre as células */
-  }
-
-  /* Estilo do cabeçalho da tabela */
-  #scoreTable thead {
-    background-color: #f1f1f1; /* Fundo cinza claro */
-    text-align: left; /* Alinha o texto à esquerda */
-  }
-
-  /* Estilo para as células do cabeçalho */
-  #scoreTable th {
-    padding: 10px;
-    border: 1px solid #ddd; /* Linha fina e cinza para separar as células */
-  }
-
-  /* Estilo para as células do corpo da tabela */
-  #scoreTable td {
-    padding: 10px;
-    border: 1px solid #ddd; /* Linha fina e cinza para separar as células */
-  }
-
-  /* Alinha o conteúdo no meio das células */
-  #scoreTable td, #scoreTable th {
-    text-align: center;
-  }
-
-  /* Adiciona um efeito de alternância de cor nas linhas da tabela */
-  #scoreTable tbody tr:nth-child(even) {
-    background-color: #f9f9f9;
-  }
-
-  #scoreTable tbody tr:hover {
-    background-color: #e0e0e0; /* Destaca a linha ao passar o mouse */
-  }
-  
-
-/* Add mobile responsiveness */
-@media (max-width: 768px) {
-    .nav-list {
-      flex-direction: column;
-      align-items: center;
-    }
-  
-    .nav-list li {
-      margin-bottom: 10px;
+      margin-left: 5%;
+      margin-right: 5%;
+      width: 90%; /* Faz com que a tabela ocupe 90% da largura da página */
+      border-collapse: collapse; /* Remove espaços entre as células */
     }
 
-    .language-option {
-        margin-left: 0; /* Align flags properly when stacked */
+    /* Estilo do cabeçalho da tabela */
+    #scoreTable thead {
+      background-color: #f1f1f1; /* Fundo cinza claro */
+      text-align: left; /* Alinha o texto à esquerda */
+    }
+
+    /* Estilo para as células do cabeçalho */
+    #scoreTable th {
+      padding: 10px;
+      border: 1px solid #ddd; /* Linha fina e cinza para separar as células */
+    }
+
+    /* Estilo para as células do corpo da tabela */
+    #scoreTable td {
+      padding: 10px;
+      border: 1px solid #ddd; /* Linha fina e cinza para separar as células */
+    }
+
+    /* Alinha o conteúdo no meio das células */
+    #scoreTable td, #scoreTable th {
+      text-align: center;
+    }
+
+    /* Adiciona um efeito de alternância de cor nas linhas da tabela */
+    #scoreTable tbody tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    #scoreTable tbody tr:hover {
+      background-color: #e0e0e0; /* Destaca a linha ao passar o mouse */
+    }
+  
+
+    @media (max-width: 768px) {
+        nav {
+          justify-content: center; /* Center nav items on small screens */
+        }
+      
+        .nav-list {
+          flex-direction: column;  /* Stack the items vertically */
+          align-items: baseline;     /* Center the items horizontally */
+        }
+      
+        .nav-list li {
+          margin-bottom: 10px;  /* Add space between items when they stack */
+        }
+      
+        .language-option {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start; /* Keeps flags in the same row */
+            margin-left: 10px;
+        }
       }
-  }
