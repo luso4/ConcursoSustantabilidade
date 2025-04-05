@@ -59,7 +59,7 @@ button:hover {
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    margin: 20px;
+    margin: 10px;
 }
 
 #scanQRCodeButton:hover {
@@ -117,10 +117,8 @@ nav {
   
   /* Style for active section */
   section {
-    padding: 50px;
-    margin-top: 20px;
+    padding: 30px;
     border-radius: 8px;
-    margin-bottom: 20px;
   }
 
 /* Language Flags Styling */
