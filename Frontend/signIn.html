@@ -5,8 +5,65 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Firebase Authentication</title>
   <link rel="stylesheet" href="styleLogin.css">
+  <style>
+    .nav-list {
+      list-style: none;
+      display: flex;
+      justify-content: center;
+      padding: 10px 0;
+      margin-top: 20px;
+    }
 
-  <!-- Import Firebase SDKs for app, authentication, firestore, and analytics -->
+    .language-option {
+      margin: 0 10px;
+    }
+
+    .language-flag {
+      width: 30px;
+      height: 20px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .language-flag:hover {
+      transform: scale(1.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <!-- Register Form -->
+    <div class="form-box">
+      <h2 data-text-id="register-title">Criar Conta</h2>
+      <form id="registerForm">
+        <div class="form-input">
+          <input type="text" id="registerUsername" placeholder="Username" required>
+        </div>
+        <div class="form-input">
+          <input type="password" id="registerPassword" placeholder="Password" required>
+        </div>
+        <button type="submit" data-text-id="register-title">Criar Conta</button>
+        <div id="registerErrorMessage" style="color: red;"></div>
+        <a href="login.html" data-text-id="login-link">Entrar na sua Conta</a>
+
+        <nav>
+          <ul class="nav-list">
+            <li class="language-option">
+              <a href="#" class="pt">
+                <img src="images/Por-Flag.png" alt="Portuguese" class="language-flag" />
+              </a>
+            </li>
+            <li class="language-option">
+              <a href="#" class="en">
+                <img src="images/transferirIng.png" alt="English" class="language-flag" />
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </form>
+    </div>
+  </div>
+
   <script type="module">
     // Import the functions you need from the SDKs you need
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
@@ -28,12 +85,85 @@
 
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);  // Firebase Authentication
-    const db = getFirestore(app);  // Firestore Database
-    const analytics = getAnalytics(app);  // Firebase Analytics
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const analytics = getAnalytics(app);
 
-    // Password Regex pattern (min 6 characters, 1 uppercase, 1 digit, 1 special char)
+    // Password Regex pattern
     const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
+
+    // Function to change language
+    function changeLanguage(language) {
+      console.log(`Changing language to: ${language}`);
+      const textElements = document.querySelectorAll("[data-text-id]");
+
+      textElements.forEach((element) => {
+        const textId = element.getAttribute("data-text-id");
+        console.log(`Processing element with textId: ${textId}`);
+        fetchTextFromFirestore(textId, language)
+          .then((text) => {
+            if (text) {
+              console.log(`Setting text for ${textId}: ${text}`);
+              element.textContent = text;
+            } else {
+              console.warn(`Text not found for ${textId} in ${language}`);
+            }
+          })
+          .catch(error => {
+            console.error(`Error setting text for ${textId}:`, error);
+          });
+      });
+      
+      localStorage.setItem("selectedLanguage", language);
+      console.log(`Language saved to localStorage: ${language}`);
+    }
+
+    // Fetch text content from Firestore
+    function fetchTextFromFirestore(textId, language) {
+      const docRef = doc(db, "text", textId);
+      console.log(`Fetching text for ${textId} in ${language}`);
+      
+      return getDoc(docRef)
+        .then((docSnap) => {
+          if (docSnap.exists()) {
+            const docData = docSnap.data();
+            const translatedText = docData[language];
+            console.log(`Fetched translated text: ${translatedText}`);
+            return translatedText || null;
+          }
+          console.warn(`No document found for ${textId}`);
+          return null;
+        })
+        .catch((error) => {
+          console.error(`Error fetching text from Firestore for ${textId}:`, error);
+          return null;
+        });
+    }
+
+    // Function to apply the saved language
+    function applySavedLanguage() {
+      const savedLanguage = localStorage.getItem("selectedLanguage") || "pt";
+      changeLanguage(savedLanguage);
+    }
+
+    // Set up event listeners after DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      // Language selection listeners
+      document.querySelector(".pt").addEventListener("click", function(e) {
+        e.preventDefault();
+        console.log("Portuguese selected");
+        changeLanguage("pt");
+      });
+
+      document.querySelector(".en").addEventListener("click", function(e) {
+        e.preventDefault();
+        console.log("English selected");
+        changeLanguage("en");
+      });
+
+      // Apply saved language
+      applySavedLanguage();
+    });
 
     // Handle User Registration
     document.getElementById('registerForm').addEventListener('submit', async (e) => {
@@ -42,86 +172,38 @@
       const username = document.getElementById('registerUsername').value;
       const password = document.getElementById('registerPassword').value;
       const errorMessageDiv = document.getElementById('registerErrorMessage');
+      const currentLanguage = localStorage.getItem('selectedLanguage') || 'pt';
 
-      // Clear any previous error messages
       errorMessageDiv.innerHTML = '';
 
-      // Validate Username (at least 3 characters)
-      if (username.length < 3) {
-        errorMessageDiv.innerHTML = 'Username must be at least 3 characters long.';
+      if (username.length < 5) {
+        const message = await fetchTextFromFirestore('username-error', currentLanguage);
+        errorMessageDiv.innerHTML = message || 'O nome de usuário deve ter pelo menos 5 caracteres.';
         return;
       }
 
-      // Validate Password (Regex for strong password)
       if (!passwordRegex.test(password)) {
-        errorMessageDiv.innerHTML = 'Password must be at least 6 characters long, contain 1 uppercase letter, 1 number, and 1 special character.';
+        const message = await fetchTextFromFirestore('password-error', currentLanguage);
+        errorMessageDiv.innerHTML = message || 'A senha deve ter pelo menos 6 caracteres, conter 1 letra maiúscula, 1 número e 1 caractere especial.';
         return;
       }
 
       try {
-        // Create a new user with Firebase Authentication
         const userCredential = await createUserWithEmailAndPassword(auth, `${username}@gmail.com`, password);
         const user = userCredential.user;
 
-        // Save user data to Firestore (including the username)
         await setDoc(doc(db, 'users', user.uid), {
           username: username
         });
 
-        alert('User created successfully');
-        
-        // Redirect to login page or welcome page after successful registration
-        window.location.href = 'regrasConcurso.html'; // Adjust to where you want the user to go after registration
+        const successMessage = await fetchTextFromFirestore('register-success', currentLanguage);
+        alert(successMessage || 'Usuário criado com sucesso');
+        window.location.href = 'regrasConcurso.html';
       } catch (error) {
         console.error('Error creating user:', error);
-        errorMessageDiv.innerHTML = error.message;  // Show error message in the form
-      }
-    });
-
-    // Handle User Login
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const username = document.getElementById('loginUsername').value;
-      const password = document.getElementById('loginPassword').value;
-      const errorMessageDiv = document.getElementById('loginErrorMessage');
-
-      // Clear any previous error messages
-      errorMessageDiv.innerHTML = '';
-
-      try {
-        // Attempt login using Firebase Authentication
-        const userCredential = await signInWithEmailAndPassword(auth, `${username}@gmail.com`, password);
-        const user = userCredential.user;
-
-        alert('Login successful');
-
-        // Redirect to regrasConcurso.html after successful login
-        window.location.href = 'regrasConcurso.html'; // This should be the correct destination page
-      } catch (error) {
-        console.error('Error logging in:', error);
-        errorMessageDiv.innerHTML = error.message;  // Show error message in the form
+        errorMessageDiv.innerHTML = error.message;
       }
     });
   </script>
-</head>
-<body>
-  <div class="form-container">
-    <!-- Register Form -->
-    <div class="form-box">
-      <h2>Create Account</h2>
-      <form id="registerForm">
-        <div class="form-input">
-          <input type="text" id="registerUsername" placeholder="Username" required>
-        </div>
-        <div class="form-input">
-          <input type="password" id="registerPassword" placeholder="Password" required>
-        </div>
-        <button type="submit">Create Account</button>
-        <div id="registerErrorMessage" style="color: red;"></div>
-        <a href="login.html">Login into your Account</a>
-      </form>
-    </div>
-  </div>
 </body>
 </html>

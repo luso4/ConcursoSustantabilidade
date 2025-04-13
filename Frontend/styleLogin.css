@@ -75,7 +75,6 @@ html, body {
     margin-top: 10px;
   }
   h5 {
-    text-align: center;
     margin-top: 10px;
 }
 
@@ -88,5 +87,33 @@ h5 a {
 h5 a:hover {
     color: #333;
     text-decoration: underline;
+}
+
+.language-option {
+  display: inline-block;
+  margin: 5px;
+}
+
+.language-flag {
+  width: 30px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.language-selector {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.nav-list {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.language-option {
+  margin: 0 10px;
 }
   

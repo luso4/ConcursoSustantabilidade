@@ -51,23 +51,122 @@
         userPointsElement.textContent = ''; // Clear points when not logged in
       }
     });
+
+    // Function to change language
+    function changeLanguage(language) {
+      console.log(`Changing language to: ${language}`);
+      const textElements = document.querySelectorAll("[data-text-id]");
+
+      textElements.forEach((element) => {
+        const textId = element.getAttribute("data-text-id");
+        console.log(`Processing element with textId: ${textId}`);
+        fetchTextFromFirestore(textId, language)
+          .then((text) => {
+            if (text) {
+              console.log(`Setting text for ${textId}: ${text}`);
+              element.textContent = text;
+            } else {
+              console.warn(`Text not found for ${textId} in ${language}`);
+            }
+          })
+          .catch(error => {
+            console.error(`Error setting text for ${textId}:`, error);
+          });
+      });
+      
+      localStorage.setItem("selectedLanguage", language);
+      console.log(`Language saved to localStorage: ${language}`);
+    }
+
+    // Fetch text content from Firestore
+    function fetchTextFromFirestore(textId, language) {
+      const docRef = doc(db, "text", textId);
+      console.log(`Fetching text for ${textId} in ${language}`);
+      
+      return getDoc(docRef)
+        .then((docSnap) => {
+          if (docSnap.exists()) {
+            const docData = docSnap.data();
+            const translatedText = docData[language];
+            console.log(`Fetched translated text: ${translatedText}`);
+            return translatedText || null;
+          }
+          console.warn(`No document found for ${textId}`);
+          return null;
+        })
+        .catch((error) => {
+          console.error(`Error fetching text from Firestore for ${textId}:`, error);
+          return null;
+        });
+    }
+
+    // Function to apply the saved language
+    function applySavedLanguage() {
+      const savedLanguage = localStorage.getItem("selectedLanguage") || "pt";
+      changeLanguage(savedLanguage);
+    }
+
+    // Set up event listeners after DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      // Language selection listeners
+      document.querySelector(".pt").addEventListener("click", function(e) {
+        e.preventDefault();
+        console.log("Portuguese selected");
+        changeLanguage("pt");
+      });
+
+      document.querySelector(".en").addEventListener("click", function(e) {
+        e.preventDefault();
+        console.log("English selected");
+        changeLanguage("en");
+      });
+
+      // Apply saved language
+      applySavedLanguage();
+    });
   </script>
 </head>
 <body>
   <header>
     <h3>Bem-vindo as Regras do Concurso</h3>
     <p id="userWelcomeMessage"></p>
+
+    <nav>
+      <ul class="nav-list">
+        <li class="language-option">
+          <a href="#" class="pt">
+            <img src="images/Por-Flag.png" alt="Portuguese" class="language-flag" />
+          </a>
+        </li>
+        <li class="language-option">
+          <a href="#" class="en">
+            <img src="images/transferirIng.png" alt="English" class="language-flag" />
+          </a>
+        </li>
+      </ul>
+    </nav>
   </header>
 
     <!--Title of the Rules-->
-    <h1>
-      This is an sample text
+    <h1 data-text-id="explanation-title-index" >
+      Explicação do jogo
     </h1>
-    <!--Text of the Rules-->
-    <p id ="rulesText">
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+    
+    <p id="rulesText" data-text-id="rules-explanation-1">
+      Bem-vindo à nossa plataforma dedicada à promoção de hábitos sustentáveis. Nosso site foi criado para incentivar e recompensar ações que contribuem para um mundo mais ecológico. Aqui, você pode registrar suas práticas sustentáveis diárias, como reciclagem, economia de energia, uso de transporte público, entre outras.
+    </p>
+    <p id="rulesText" data-text-id="rules-explanation-2">
+      Cada ação que você realiza tem um impacto positivo no meio ambiente, e queremos reconhecer seu esforço. Nossa plataforma permite que você acompanhe seu progresso e veja como suas contribuições estão fazendo a diferença. Semanalmente, destacamos os participantes mais engajados, oferecendo prêmios que variam de itens ecológicos a vales-presente e experiências sustentáveis.
+    </p>
+    <p id="rulesText" data-text-id="rules-explanation-3">
+      Nosso objetivo é criar uma comunidade de indivíduos comprometidos com a sustentabilidade, inspirando uns aos outros a adotar práticas que beneficiem o planeta. Ao participar, você não apenas ajuda o meio ambiente, mas também se junta a um movimento de mudança positiva.
+    </p>
+    <p id="rulesText" data-text-id="rules-explanation-4">
+      Junte-se a nós e transforme suas ações em impacto real. Sua participação é fundamental para construir um futuro mais sustentável para todos.
     </p>
 
     <button id="playButton" onclick="redirectToGame()">Continuar</button>
+
+    
 </body>
 </html>

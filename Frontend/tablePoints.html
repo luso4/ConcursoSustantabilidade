@@ -48,6 +48,9 @@
 
       // Save the selected language to localStorage
       localStorage.setItem("selectedLanguage", language);
+
+      // Reload the score table with the new language
+      loadScoreTable();
     }
 
     // Fetch text content from Firestore (for localization)
@@ -84,6 +87,10 @@
       const querySnapshot = await getDocs(scoreTableRef); // Fetch all documents in the collection
 
       const tableBody = document.querySelector("#scoreTable tbody"); // Get the table body element
+      tableBody.innerHTML = ''; // Clear existing table rows
+
+      // Get the current language setting
+      const currentLanguage = localStorage.getItem("selectedLanguage") || "pt"; // Default to 'pt' if no language is saved
 
       querySnapshot.forEach((doc) => {
         const data = doc.data();
@@ -91,16 +98,16 @@
 
         // Create table cells for each piece of data (name, points, description, time)
         const nameCell = document.createElement("td");
-        nameCell.textContent = data.name || "No Name";
+        nameCell.textContent = data[`name_${currentLanguage}`] || "No Name";
 
         const pointsCell = document.createElement("td");
-        pointsCell.textContent = data.points || "No Points";
+        pointsCell.textContent = data[`points_${currentLanguage}`] || "No Points";
 
         const descriptionCell = document.createElement("td");
-        descriptionCell.textContent = data.description || "No Description";
+        descriptionCell.textContent = data[`description_${currentLanguage}`] || "No Description";
 
         const timeCell = document.createElement("td");
-        timeCell.textContent = data.time || "No Time";
+        timeCell.textContent = data[`time_${currentLanguage}`] || "No Time";
 
         // Append the cells to the row
         tableRow.appendChild(nameCell);
@@ -167,9 +174,5 @@
       <!-- Data will be dynamically inserted here -->
     </tbody>
   </table>
-
-  <p id="rulesText" data-text-id="rules-text-index">
-    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-  </p>
 </body>
 </html>

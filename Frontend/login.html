@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Firebase Authentication</title>
   <link rel="stylesheet" href="styleLogin.css">
+  
 </head>
 <body>
   <div class="form-container">
-    <!-- Login Form -->
     <div class="form-box">
-      <h2>Login Form</h2>
+      <h2 data-text-id="login-title">Formulário de Login</h2>
       <form id="loginForm">
         <div class="form-input">
           <input type="text" id="loginUsername" placeholder="Username" required>
@@ -18,15 +18,29 @@
         <div class="form-input">
           <input type="password" id="loginPassword" placeholder="Password" required>
         </div>
-        <button type="submit">Login</button>
+        <button type="submit" data-text-id="login-button">Entrar</button>
         <div id="loginErrorMessage" style="color: red;"></div>
-        <a href="signIn.html">Create an Account</a>
-        <h5><a href="#" id="resetPassword">Forgot Password?</a></h5>
+        <a href="signIn.html" data-text-id="create-account">Criar uma Conta</a>
+        <h5><a href="#" id="resetPassword" data-text-id="forgot-password">Esqueceu a Senha?</a></h5>
+
+        <nav>
+          <ul class="nav-list">
+            <li class="language-option">
+              <a href="#" class="pt">
+                <img src="images/Por-Flag.png" alt="Portuguese" class="language-flag" />
+              </a>
+            </li>
+            <li class="language-option">
+              <a href="#" class="en">
+                <img src="images/transferirIng.png" alt="English" class="language-flag" />
+              </a>
+            </li>
+          </ul>
+        </nav>
       </form>
     </div>
   </div>
 
-  <!-- Move the script tag here to load after the DOM -->
   <script type="module">
     // Import the functions you need from the SDKs you need
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
@@ -48,9 +62,82 @@
 
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);  // Firebase Authentication
-    const db = getFirestore(app);  // Firestore Database
-    const analytics = getAnalytics(app);  // Firebase Analytics
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const analytics = getAnalytics(app);
+
+    // Function to change language
+    function changeLanguage(language) {
+      console.log(`Changing language to: ${language}`);
+      const textElements = document.querySelectorAll("[data-text-id]");
+
+      textElements.forEach((element) => {
+        const textId = element.getAttribute("data-text-id");
+        console.log(`Processing element with textId: ${textId}`);
+        fetchTextFromFirestore(textId, language)
+          .then((text) => {
+            if (text) {
+              console.log(`Setting text for ${textId}: ${text}`);
+              element.textContent = text;
+            } else {
+              console.warn(`Text not found for ${textId} in ${language}`);
+            }
+          })
+          .catch(error => {
+            console.error(`Error setting text for ${textId}:`, error);
+          });
+      });
+      
+      localStorage.setItem("selectedLanguage", language);
+      console.log(`Language saved to localStorage: ${language}`);
+    }
+
+    // Fetch text content from Firestore
+    function fetchTextFromFirestore(textId, language) {
+      const docRef = doc(db, "text", textId);
+      console.log(`Fetching text for ${textId} in ${language}`);
+      
+      return getDoc(docRef)
+        .then((docSnap) => {
+          if (docSnap.exists()) {
+            const docData = docSnap.data();
+            const translatedText = docData[language];
+            console.log(`Fetched translated text: ${translatedText}`);
+            return translatedText || null;
+          }
+          console.warn(`No document found for ${textId}`);
+          return null;
+        })
+        .catch((error) => {
+          console.error(`Error fetching text from Firestore for ${textId}:`, error);
+          return null;
+        });
+    }
+
+    // Function to apply the saved language
+    function applySavedLanguage() {
+      const savedLanguage = localStorage.getItem("selectedLanguage") || "pt";
+      changeLanguage(savedLanguage);
+    }
+
+    // Set up event listeners after DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      // Language selection listeners
+      document.querySelector(".pt").addEventListener("click", function(e) {
+        e.preventDefault();
+        console.log("Portuguese selected");
+        changeLanguage("pt");
+      });
+
+      document.querySelector(".en").addEventListener("click", function(e) {
+        e.preventDefault();
+        console.log("English selected");
+        changeLanguage("en");
+      });
+
+      // Apply saved language
+      applySavedLanguage();
+    });
 
     // Handle User Login
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -60,44 +147,48 @@
       const password = document.getElementById('loginPassword').value;
       const errorMessageDiv = document.getElementById('loginErrorMessage');
 
-      // Clear any previous error messages
       errorMessageDiv.innerHTML = '';
 
       try {
-        // Attempt login using Firebase Authentication
         const userCredential = await signInWithEmailAndPassword(auth, `${username}@gmail.com`, password);
         const user = userCredential.user;
 
         alert('Login successful');
-        window.location.href = 'index.html'; // Redirect after login
+        window.location.href = 'index.html';
       } catch (error) {
         console.error('Error logging in:', error);
-        errorMessageDiv.innerHTML = error.message;  // Show error message in the form
+        errorMessageDiv.innerHTML = error.message;
       }
     });
 
-    // Add password reset functionality
+    // Password reset functionality
     document.getElementById('resetPassword').addEventListener('click', async (e) => {
-        e.preventDefault();
-        
-        const username = document.getElementById('loginUsername').value;
-        const errorMessageDiv = document.getElementById('loginErrorMessage');
-        
-        if (!username) {
-            errorMessageDiv.innerHTML = 'Please enter your username/email first';
-            return;
-        }
+      e.preventDefault();
+      
+      const username = document.getElementById('loginUsername').value;
+      const errorMessageDiv = document.getElementById('loginErrorMessage');
+      
+      if (!username) {
+        const textId = 'enter-username';
+        const currentLanguage = localStorage.getItem('selectedLanguage') || 'pt';
+        const message = await fetchTextFromFirestore(textId, currentLanguage);
+        errorMessageDiv.innerHTML = message || 'Please enter your username/email first';
+        return;
+      }
 
-        try {
-            const email = username.includes('@') ? username : `${username}@gmail.com`;
-            await sendPasswordResetEmail(auth, email);
-            errorMessageDiv.style.color = 'green';
-            errorMessageDiv.innerHTML = 'Password reset email sent! Please check your inbox.';
-        } catch (error) {
-            console.error('Error sending password reset email:', error);
-            errorMessageDiv.style.color = 'red';
-            errorMessageDiv.innerHTML = error.message;
-        }
+      try {
+        const email = username.includes('@') ? username : `${username}@gmail.com`;
+        await sendPasswordResetEmail(auth, email);
+        errorMessageDiv.style.color = 'green';
+        const textId = 'password-reset-success';
+        const currentLanguage = localStorage.getItem('selectedLanguage') || 'pt';
+        const message = await fetchTextFromFirestore(textId, currentLanguage);
+        errorMessageDiv.innerHTML = message || 'Password reset email sent! Please check your inbox.';
+      } catch (error) {
+        console.error('Error sending password reset email:', error);
+        errorMessageDiv.style.color = 'red';
+        errorMessageDiv.innerHTML = error.message;
+      }
     });
   </script>
 </body>
