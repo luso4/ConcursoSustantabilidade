@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title data-text-id="index-title">Meu Site com QR Code</title>
+  <title data-text-id="index-title">Ser Saudável também é Sustentável</title>
   <link rel="stylesheet" href="stylesIndex.css">
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 
@@ -12,92 +12,73 @@
     document.getElementById('scanQRCodeButton').addEventListener('click', initializeQRScanner);
   </script>
 
-  <script type="module">
-    // Import Firebase SDKs
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, query, orderBy, limit, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+<script type="module">
+  // Import Firebase SDKs
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, updateDoc, query, orderBy, limit, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-    // Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyAFAxzVh5z5erSUKqvSLh5OGxN9bxXrPug",
-      authDomain: "sustentabilidade-cd465.firebaseapp.com",
-      databaseURL: "https://sustentabilidade-cd465-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "sustentabilidade-cd465",
-      storageBucket: "sustentabilidade-cd465.firebasestorage.app",
-      messagingSenderId: "545614370680",
-      appId: "1:545614370680:web:dfef3d8f7c5f44bea49a8d",
-      measurementId: "G-604CWSPS2Z"
-    };
+  // Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyAFAxzVh5z5erSUKqvSLh5OGxN9bxXrPug",
+    authDomain: "sustentabilidade-cd465.firebaseapp.com",
+    databaseURL: "https://sustentabilidade-cd465-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "sustentabilidade-cd465",
+    storageBucket: "sustentabilidade-cd465.firebasestorage.app",
+    messagingSenderId: "545614370680",
+    appId: "1:545614370680:web:dfef3d8f7c5f44bea49a8d",
+    measurementId: "G-604CWSPS2Z"
+  };
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
+  // Function to fetch text content from Firestore
+  function fetchTextFromFirestore(textId, language) {
+    const docRef = doc(db, "text", textId);
+    return getDoc(docRef).then((docSnap) => {
+      if (docSnap.exists()) {
+        const docData = docSnap.data();
+        return docData[language] || null; // Fetch the text for the specified language
+      }
+      console.warn(`No document found for ${textId}`);
+      return null;
+    }).catch((error) => {
+      console.error("Error fetching text from Firestore:", error);
+      return null;
+    });
+  }
 
-    // Function to fetch the welcome message from Firestore
-    function fetchWelcomeMessage(language) {
-      const docRef = doc(db, "text", "welcomeText");
-      return getDoc(docRef).then((docSnap) => {
-        if (docSnap.exists()) {
-          const docData = docSnap.data();
-          return docData[language] || "Bem-vindo"; // Default to "Bem-vindo" if not found
-        }
-        console.warn("No document found for welcomeText");
-        return "Bem-vindo";
-      }).catch((error) => {
-        console.error("Error fetching welcome message from Firestore:", error);
-        return "Bem-vindo";
-      });
-    }
+  // Function to change language
+  function changeLanguage(language) {
+    const textElements = document.querySelectorAll("[data-text-id]");
 
-    // Function to change language
-    function changeLanguage(language) {
-      const textElements = document.querySelectorAll("[data-text-id]");
+    textElements.forEach((element) => {
+      const textId = element.getAttribute("data-text-id");
+      fetchTextFromFirestore(textId, language)
+        .then((text) => {
+          if (text) {
+            element.textContent = text; // Update the text content
+          } else {
+            console.warn(`Text not found for ${textId} in ${language}`);
+          }
+        });
+    });
 
-      textElements.forEach((element) => {
-        const textId = element.getAttribute("data-text-id");
-        fetchTextFromFirestore(textId, language)
-          .then((text) => {
-            if (text) {
-              console.log(`Fetched text for ${textId}: ${text}`);
-              element.textContent = text; // Set fetched text or keep existing
-            } else {
-              console.warn(`Text not found for ${textId} in ${language}`);
-            }
-          });
-      });
     // Save the selected language in localStorage
     localStorage.setItem("selectedLanguage", language);
-    }
+  }
 
-    // Fetch text content from Firestore
-    function fetchTextFromFirestore(textId, language) {
-      const docRef = doc(db, "text", textId);
-      console.log(`Fetching text for ${textId} in ${language}`);
-      return getDoc(docRef).then((docSnap) => {
-        if (docSnap.exists()) {
-          const docData = docSnap.data();
-          const translatedText = docData[language];
-          console.log(`Fetched translated text: ${translatedText}`);
-          return translatedText || null;
-        }
-        console.warn(`No document found for ${textId}`);
-        return null;
-      }).catch((error) => {
-        console.error("Error fetching text from Firestore:", error);
-        return null;
-      });
-    }
+  // Function to apply the saved language when the page loads
+  function applySavedLanguage() {
+    const savedLanguage = localStorage.getItem("selectedLanguage") || "pt"; // Default to Portuguese if no language is saved
+    changeLanguage(savedLanguage);
+  }
 
-    // Function to apply the saved language when the page loads
-    function applySavedLanguage() {
-      const savedLanguage = localStorage.getItem("selectedLanguage") || "pt"; // Default to Portuguese if no language is saved
-      changeLanguage(savedLanguage);
-    }
-
-    // Set up event listeners for language selection
+  // Set up event listeners for language selection
+  document.addEventListener("DOMContentLoaded", () => {
     document.querySelector(".pt").addEventListener("click", () => {
       changeLanguage("pt");
     });
@@ -106,144 +87,177 @@
       changeLanguage("en");
     });
 
-    // Call the function to apply the saved language when the page loads
-    window.onload = function() {
-      applySavedLanguage();
-    };
+    // Add the event listener for the QR code button here
+    document.getElementById('scanQRCodeButton').addEventListener('click', initializeQRScanner);
 
-    // Highlighted user styling
-    const HIGHLIGHT_COLOR = '#ffeb3b';
+    // Apply the saved language when the page loads
+    applySavedLanguage();
+  });
 
-    // Monitor authentication state
-    onAuthStateChanged(auth, user => {
-      const welcomeMessage = document.getElementById('userWelcomeMessage');
-      const userPointsElement = document.getElementById('userPoints');
+  // Monitor authentication state
+  onAuthStateChanged(auth, user => {
+    const welcomeMessage = document.getElementById('userWelcomeMessage');
+    const userPointsElement = document.getElementById('userPoints');
 
-      if (user) {
-        // Fetch the welcome message in the selected language
-        const savedLanguage = localStorage.getItem("selectedLanguage") || "pt";
-        fetchWelcomeMessage(savedLanguage).then((welcomeText) => {
-          welcomeMessage.textContent = `${welcomeText}, ${user.displayName || user.email}`;
-        });
+    if (user) {
+      // Fetch the welcome message in the selected language
+      const savedLanguage = localStorage.getItem("selectedLanguage") || "pt";
+      fetchTextFromFirestore("welcomeText", savedLanguage).then((welcomeText) => {
+        welcomeMessage.textContent = `${welcomeText}, ${user.displayName || user.email}`;
+      });
 
-        // Fetch user points using the user's UID
-        checkUserPoints(user.uid, userPointsElement, user);
+      // Fetch user points using the user's UID
+      checkUserPoints(user.uid, userPointsElement, user);
 
-        // Start QR code detection when button is clicked
-        document.getElementById('scanQRCodeButton').addEventListener('click', function() {
-          const video = document.getElementById('video');
-          const canvas = document.getElementById('canvas');
-          const context = canvas.getContext('2d');
-          
-          // Add 'active' class to show the border
-          video.classList.add('active');
-          video.style.display = 'block';
+      // Start QR code detection when button is clicked
+      document.getElementById('scanQRCodeButton').addEventListener('click', function() {
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+        
+        // Add 'active' class to show the border
+        video.classList.add('active');
+        video.style.display = 'block';
 
-          // Access device's camera
-          navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-            .then(function(stream) {
-              video.srcObject = stream;
-              video.play();
-              // Detect QR Code periodically
-              detectarQRCode(video, canvas, context, user);
-            })
-            .catch(function(error) {
-              console.error('Erro ao acessar a câmera: ', error);
-            });
-        });
-      } else {
-        welcomeMessage.textContent = 'Você não está logado.';
-        userPointsElement.textContent = ''; // Clear points when not logged in
-      }
-    });
+        // Access device's camera
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+          .then(function(stream) {
+            video.srcObject = stream;
+            video.play();
+            // Detect QR Code periodically
+            detectarQRCode(video, canvas, context, user);
+          })
+          .catch(function(error) {
+            console.error('Erro ao acessar a câmera: ', error);
+          });
+      });
+    } else {
+      welcomeMessage.textContent = 'Você não está logado.';
+      userPointsElement.textContent = ''; // Clear points when not logged in
+    }
+  });
 
-    // Function to check user points and create document if it doesn't exist
-    function checkUserPoints(userId, userPointsElement, user) {
-      const userRef = doc(db, "scoreboard", userId);
+  // Function to check user points and create document if it doesn't exist
+  function checkUserPoints(userId, userPointsElement, user) {
+    const userRef = doc(db, "scoreboard", userId);
+    const savedLanguage = localStorage.getItem("selectedLanguage") || "pt"; // Get the current language
 
-      getDoc(userRef).then(docSnap => {
-        if (docSnap.exists()) {
-          const userData = docSnap.data();
+    getDoc(userRef).then(docSnap => {
+      if (docSnap.exists()) {
+        const userData = docSnap.data();
+        if (savedLanguage === "pt")
           userPointsElement.textContent = `Pontos: ${userData.points || 0}`;
-        } else {
-          setDoc(userRef, { points: 0, email: user.email, lastScan: 0  })
-            .then(() => {
+        else
+          userPointsElement.textContent = `Points: ${userData.points || 0}`;
+      } else {
+        setDoc(userRef, { points: 0, email: user.email, lastScan: {}  })
+          .then(() => {
+            if (savedLanguage === "pt")
               userPointsElement.textContent = 'Pontos: 0';
-            })
-            .catch(error => {
-              console.error("Error creating user document:", error);
-              userPointsElement.textContent = 'Erro ao carregar pontos.';
-            });
-        }
-      }).catch(error => {
-        console.error("Erro ao obter dados do usuário:", error);
-        userPointsElement.textContent = 'Erro ao carregar pontos.';
-      });
-    }
+            else
+              userPointsElement.textContent = 'Points: 0';
+          })
+          .catch(error => {
+            console.error("Error creating user document:", error);
+            userPointsElement.textContent = 'Erro ao carregar pontos.';
+          });
+      }
+    }).catch(error => {
+      console.error("Erro ao obter dados do usuário:", error);
+      userPointsElement.textContent = 'Erro ao carregar pontos.';
+    });
+  }
 
-    // Function to add points to the logged-in user
-    function addPoints(userId, pointsToAdd) {
-      const userRef = doc(db, "scoreboard", userId);
+  // Function to add points to the logged-in user
+  function addPoints(userId, pointsToAdd) {
+    const userRef = doc(db, "scoreboard", userId);
 
-      getDoc(userRef).then(docSnap => {
-        if (docSnap.exists()) {
-          const userData = docSnap.data();
-          const newPoints = userData.points + pointsToAdd;
+    getDoc(userRef).then(docSnap => {
+      if (docSnap.exists()) {
+        const userData = docSnap.data();
+        const newPoints = userData.points + pointsToAdd;
 
-          updateDoc(userRef, { points: newPoints })
-            .then(() => {
-              const userPointsElement = document.getElementById('userPoints');
-              userPointsElement.textContent = `Pontos: ${newPoints}`;
-              displayTop3Users(); // Refresh the top 3 users list
-            })
-            .catch(error => {
-              console.error("Erro ao atualizar os pontos:", error);
-            });
-        }
-      }).catch((error) => {
-        console.error("Erro ao obter os dados do usuário:", error);
-      });
-    }
+        updateDoc(userRef, { points: newPoints })
+          .then(() => {
+            const userPointsElement = document.getElementById('userPoints');
+            userPointsElement.textContent = `Pontos: ${newPoints}`;
+            displayTop3Users(); // Refresh the top 3 users list
+          })
+          .catch(error => {
+            console.error("Erro ao atualizar os pontos:", error);
+          });
+      }
+    }).catch((error) => {
+      console.error("Erro ao obter os dados do usuário:", error);
+    });
+  }
 
-    // Function to detect QR Code and add points if the QR code matches
-    function detectarQRCode(video, canvas, context, user) {
-      setInterval(function() {
-        if (video.readyState === video.HAVE_ENOUGH_DATA) {
-          canvas.height = video.videoHeight;
-          canvas.width = video.videoWidth;
-          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+  // Function to detect QR Code and add points if the QR code matches
+  function detectarQRCode(video, canvas, context, user) {
+    setInterval(function() {
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.height = video.videoHeight;
+        canvas.width = video.videoWidth;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-          const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-          const qrCode = jsQR(imageData.data, canvas.width, canvas.height);
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        const qrCode = jsQR(imageData.data, canvas.width, canvas.height);
 
-          if (qrCode) {
-            if (qrCode.data === 'https://qrco.de/bfm6Ip') { // Matching QR Code
-              checkLastScan(user.uid).then(canScan => {
-                if (canScan) {
-                  addPoints(user.uid, 10); // Pass user UID to add points
-                  updateLastScan(user.uid); // Update the last scan timestamp
-                } else {
-                  alert("You can only scan this QR code once every 24 hours.");
+        if (qrCode) {
+            console.log(qrCode.data);
+            const qrCodeData = qrCode.data;
+
+            checkLastScan(user.uid, qrCodeData).then(canScan => {
+              if (canScan) {
+                let pointsToAdd = 0;
+                switch (qrCodeData) {
+                  case 'Usar escadas':
+                    pointsToAdd = 3;
+                    break;
+                  case 'Separar Lixo':
+                    pointsToAdd = 5;
+                    break;
+                  case 'Garrafas reutilizáveis':
+                    pointsToAdd = 5;
+                    break;
+                  case 'Comida em recipientes reutilizáveis':
+                    pointsToAdd = 6;
+                    break;
+                  case 'Materiais de escrita sustentáveis':
+                    pointsToAdd = 7;
+                    break;
+                  case 'Transporte sustentável':
+                    pointsToAdd = 10;
+                    break;
+                  default:
+                    console.warn("Unknown QR code data:", qrCodeData);
                 }
-              });
-            }
 
+                if (pointsToAdd > 0) {
+                  addPoints(user.uid, pointsToAdd);
+                  updateLastScan(user.uid, qrCodeData);
+                }
+              } else {
+                alert("You can only scan this QR code once every 24 hours.");
+              }
+            });
 
             video.srcObject.getTracks().forEach(track => track.stop());
             video.style.display = 'none';
-            video.classList.remove('active'); // Remove border after stopping the scan
+            video.classList.remove('active');
           }
         }
       }, 100);
     }
 
-    // Function to check the last scan timestamp
-    function checkLastScan(userId) {
+  // Function to check the last scan timestamp for a specific QR code
+  function checkLastScan(userId, qrCodeData) {
       const userRef = doc(db, "scoreboard", userId);
       return getDoc(userRef).then(docSnap => {
         if (docSnap.exists()) {
           const userData = docSnap.data();
-          const lastScan = userData.lastScan || 0;
+          const lastScans = userData.lastScans || {};
+          const lastScan = lastScans[qrCodeData] || 0;
           const now = Date.now();
           return (now - lastScan) > 24 * 60 * 60 * 1000; // Check if 24 hours have passed
         }
@@ -254,101 +268,108 @@
       });
     }
 
-    // Function to update the last scan timestamp
-    function updateLastScan(userId) {
+    // Function to update the last scan timestamp for a specific QR code
+    function updateLastScan(userId, qrCodeData) {
       const userRef = doc(db, "scoreboard", userId);
-      updateDoc(userRef, { lastScan: Date.now() }).catch(error => {
-        console.error("Error updating last scan:", error);
-      });
-    }
-
-    // Function to display the top 3 users with real-time updates
-    function displayTop3Users() {
-      const scoreboardRef = collection(db, "scoreboard");
-      const q = query(scoreboardRef, orderBy("points", "desc"), limit(3));
-
-      // Real-time updates with onSnapshot
-      onSnapshot(q, querySnapshot => {
-        let top3Users = [];
-        querySnapshot.forEach(doc => {
-          const userData = doc.data();
-          top3Users.push({ uid: doc.id, ...userData });
-        });
-
-        displayTop3UsersInHTML(top3Users); // Refresh the leaderboard
-      }, error => {
-        console.error("Error listening to scoreboard changes:", error);
-      });
-    }
-
-    // Function to display the top 3 users in HTML
-    function displayTop3UsersInHTML(top3Users) {
-      const auth = getAuth();
-      const scoreboardElement = document.getElementById("scoreboard");
-      scoreboardElement.innerHTML = ""; // Clear previous scoreboard data
-
-      top3Users.forEach(user => {
-        const userEmail = user.email;
-        const userPoints = user.points;
-        const userDiv = document.createElement("div");
-
-        // Highlight the logged-in user
-        if (auth.currentUser && auth.currentUser.email === userEmail) {
-          userDiv.style.backgroundColor = HIGHLIGHT_COLOR; // Apply highlight color
-          userDiv.style.fontWeight = 'bold';
+      getDoc(userRef).then(docSnap => {
+        if (docSnap.exists()) {
+          const userData = docSnap.data();
+          const lastScans = userData.lastScans || {};
+          lastScans[qrCodeData] = Date.now();
+          updateDoc(userRef, { lastScans }).catch(error => {
+            console.error("Error updating last scan:", error);
+          });
         }
-
-        userDiv.textContent = `${userEmail}: ${userPoints} pontos`;
-        scoreboardElement.appendChild(userDiv);
       });
     }
 
-    // Initial call to display top 3 users when the page loads
-    displayTop3Users();
-  </script>
+  // Function to display the top 3 users with real-time updates
+  function displayTop3Users() {
+    const scoreboardRef = collection(db, "scoreboard");
+    const q = query(scoreboardRef, orderBy("points", "desc"), limit(3));
+
+    // Real-time updates with onSnapshot
+    onSnapshot(q, querySnapshot => {
+      let top3Users = [];
+      querySnapshot.forEach(doc => {
+        const userData = doc.data();
+        top3Users.push({ uid: doc.id, ...userData });
+      });
+
+      displayTop3UsersInHTML(top3Users); // Refresh the leaderboard
+    }, error => {
+      console.error("Error listening to scoreboard changes:", error);
+    });
+  }
+
+  // Function to display the top 3 users in HTML
+  function displayTop3UsersInHTML(top3Users) {
+    const auth = getAuth();
+    const scoreboardElement = document.getElementById("scoreboard");
+    scoreboardElement.innerHTML = ""; // Clear previous scoreboard data
+
+    top3Users.forEach(user => {
+      const userEmail = user.email;
+      const userPoints = user.points;
+      const userDiv = document.createElement("div");
+
+      // Highlight the logged-in user
+      if (auth.currentUser && auth.currentUser.email === userEmail) {
+        userDiv.style.backgroundColor = '#ffeb3b'; // Apply highlight color
+        userDiv.style.fontWeight = 'bold';
+      }
+
+      userDiv.textContent = `${userEmail}: ${userPoints} pontos`;
+      scoreboardElement.appendChild(userDiv);
+    });
+  }
+
+  // Initial call to display top 3 users when the page loads
+  displayTop3Users();
+</script>
 </head>
 <body>
-  <header>
-    <h3 id="1" data-text-id="intro">Bem-vindo ao Sistema de Pontuação</h3>
+<header>
+  <h3 id="1" data-text-id="intro">Ser Saudável também é Sustentável</h3>
 
-    <nav>
-      <ul class="nav-list">
-        <li><a href="index.html" data-text-id="home-link">Início</a></li>
-        <li><a href="rules.html" data-text-id="rules-link">Regras</a></li>
-        <li><a href="tablePoints.html" data-text-id="point-link">Tabela de Pontos</a></li>
-        <li class="language-option">
-          <a href="#pt" class="pt">
-            <img src="images/Por-Flag.png" alt="Portuguese" class="language-flag" />
-          </a>
-        </li>
-        <li class="language-option">
-          <a href="#en" class="en">
-            <img src="images/transferirIng.png" alt="English" class="language-flag" />
-          </a>
-        </li>
-      </ul>
-    </nav>
-    
-    <p id="userWelcomeMessage"></p>
-  </header>
+  <nav>
+    <ul class="nav-list">
+      <li><a href="index.html" data-text-id="home-link">Início</a></li>
+      <li><a href="rules.html" data-text-id="rules-link">Regras</a></li>
+      <li><a href="tablePoints.html" data-text-id="point-link">Tabela de Pontos</a></li>
+      <li class="language-option">
+        <a href="#pt" class="pt">
+          <img src="images/Por-Flag.png" alt="Portuguese" class="language-flag" />
+        </a>
+      </li>
+      <li class="language-option">
+        <a href="#en" class="en">
+          <img src="images/transferirIng.png" alt="English" class="language-flag" />
+        </a>
+      </li>
+    </ul>
+  </nav>
+  
+  <p id="userWelcomeMessage"></p>
+</header>
 
-  <section>
-    <h4 data-text-id="scoreboard-title">Tabela de Pontuação</h4>
-    <div id="scoreboard"></div>
-  </section>
+<section>
+  <h4 data-text-id="scoreboard-title">Tabela de Pontuação</h4>
+  <div id="scoreboard"></div>
+</section>
 
-  <p id="userPoints">Pontos: 0</p>
-  <button id="scanQRCodeButton" data-text-id="scan-button">Ativar a Câmera e Ler QR Code</button>
+<p id="userPoints">Pontos: 0</p>
+<button id="scanQRCodeButton" data-text-id="scan-button">Ativar a Câmera e Ler QR Code</button>
 
-  <video id="video" width="300" height="300" style="display:none;"></video>
-  <canvas id="canvas" style="display:none;"></canvas>
+<video id="video" width="300" height="300" style="display:none;"></video>
+<canvas id="canvas" style="display:none;"></canvas>
 
-  <h4 data-text-id="rules-title-index">
-    This is a sample text
-  </h4>
+<h4 data-text-id="rules-title-index">
+  Regras do jogo
+</h4>
 
-  <p id="rulesText" data-text-id="rules-text-index">
-    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-  </p>
+<p id="rulesText" data-text-id="rules-text-index">
+  O objetivo é adotar o máximo de hábitos sustentáveis possíveis. Os utilizadores devem registrar suas ações sustentáveis na plataforma digital ao longo da semana. Para ganhar pontos, os participantes precisam de ler um código QR que estará espalhado pela universidade em locais específicos. Esses códigos estão associados a atividades saudáveis e sustentáveis, detalhadas na pagina Tabela de Pontos. Cada ação é avaliada com base no seu impacto ambiental. No final da semana, os três participantes mais engajados serão reconhecidos e receberão prêmios. Participe ativamente e inspire outros a adotar práticas sustentáveis.
+</p>
 </body>
 </html>

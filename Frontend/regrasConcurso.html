@@ -3,8 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Regras</title>
+  <title>Ser Saudável também é Sustentável</title>
   <link rel="stylesheet" href="stylesIndex.css">
+  <style>
+    .nav-list {
+      list-style: none;
+      display: flex;
+      justify-content: center;
+      padding: 10px 0;
+      margin-top: 20px;
+    }
+
+    .language-option {
+      margin: 0 10px;
+    }
+
+    .language-flag {
+      width: 30px;
+      height: 20px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .language-flag:hover {
+      transform: scale(1.1);
+    }
+  </style>
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 
   <script>
@@ -131,20 +155,7 @@
     <h3>Bem-vindo as Regras do Concurso</h3>
     <p id="userWelcomeMessage"></p>
 
-    <nav>
-      <ul class="nav-list">
-        <li class="language-option">
-          <a href="#" class="pt">
-            <img src="images/Por-Flag.png" alt="Portuguese" class="language-flag" />
-          </a>
-        </li>
-        <li class="language-option">
-          <a href="#" class="en">
-            <img src="images/transferirIng.png" alt="English" class="language-flag" />
-          </a>
-        </li>
-      </ul>
-    </nav>
+    
   </header>
 
     <!--Title of the Rules-->
@@ -166,6 +177,20 @@
     </p>
 
     <button id="playButton" onclick="redirectToGame()">Continuar</button>
+
+    
+      <ul class="nav-list">
+        <li class="language-option">
+          <a href="#" class="pt">
+            <img src="images/Por-Flag.png" alt="Portuguese" class="language-flag" />
+          </a>
+        </li>
+        <li class="language-option">
+          <a href="#" class="en">
+            <img src="images/transferirIng.png" alt="English" class="language-flag" />
+          </a>
+        </li>
+      </ul>
 
     
 </body>
