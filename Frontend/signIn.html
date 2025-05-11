@@ -176,9 +176,9 @@
 
       errorMessageDiv.innerHTML = '';
 
-      if (username.length < 5) {
+      if (username.length < 3) {
         const message = await fetchTextFromFirestore('username-error', currentLanguage);
-        errorMessageDiv.innerHTML = message || 'O nome de usuário deve ter pelo menos 5 caracteres.';
+        errorMessageDiv.innerHTML = message || 'O nome de usuário deve ter pelo menos 3 caracteres.';
         return;
       }
 
@@ -189,7 +189,7 @@
       }
 
       try {
-        const userCredential = await createUserWithEmailAndPassword(auth, `${username}@gmail.com`, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, `${username}@alunos.upt.pt`, password);
         const user = userCredential.user;
 
         await setDoc(doc(db, 'users', user.uid), {

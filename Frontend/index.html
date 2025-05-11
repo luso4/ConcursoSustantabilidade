@@ -205,6 +205,7 @@
 
         if (qrCode) {
             console.log(qrCode.data);
+            console.log("QR Code ID:", qrCodeData.id);
             const qrCodeData = qrCode.data;
 
             checkLastScan(user.uid, qrCodeData).then(canScan => {

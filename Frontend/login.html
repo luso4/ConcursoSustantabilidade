@@ -150,7 +150,7 @@
       errorMessageDiv.innerHTML = '';
 
       try {
-        const userCredential = await signInWithEmailAndPassword(auth, `${username}@gmail.com`, password);
+        const userCredential = await signInWithEmailAndPassword(auth, `${username}@alunos.upt.pt`, password);
         const user = userCredential.user;
 
         alert('Login successful');
@@ -177,7 +177,7 @@
       }
 
       try {
-        const email = username.includes('@') ? username : `${username}@gmail.com`;
+        const email = username.includes('@') ? username : `${username}@alunos.upt.pt`;
         await sendPasswordResetEmail(auth, email);
         errorMessageDiv.style.color = 'green';
         const textId = 'password-reset-success';
