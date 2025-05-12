@@ -205,29 +205,28 @@
 
         if (qrCode) {
             console.log(qrCode.data);
-            console.log("QR Code ID:", qrCodeData.id);
             const qrCodeData = qrCode.data;
 
             checkLastScan(user.uid, qrCodeData).then(canScan => {
               if (canScan) {
                 let pointsToAdd = 0;
                 switch (qrCodeData) {
-                  case 'Usar escadas':
+                  case 'https://www.qrcode-1.com':
                     pointsToAdd = 3;
                     break;
-                  case 'Separar Lixo':
+                  case 'https://www.qrcode-2.com':
                     pointsToAdd = 5;
                     break;
-                  case 'Garrafas reutilizáveis':
+                  case 'https://www.qrcode-3.com':
                     pointsToAdd = 5;
                     break;
-                  case 'Comida em recipientes reutilizáveis':
+                  case 'https://www.qrcode-4.com':
                     pointsToAdd = 6;
                     break;
-                  case 'Materiais de escrita sustentáveis':
+                  case 'https://www.qrcode-5.com':
                     pointsToAdd = 7;
                     break;
-                  case 'Transporte sustentável':
+                  case 'https://www.qrcode-6.com':
                     pointsToAdd = 10;
                     break;
                   default:
