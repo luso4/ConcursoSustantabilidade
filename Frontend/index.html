@@ -77,7 +77,32 @@
     changeLanguage(savedLanguage);
   }
 
-  // Set up event listeners for language selection
+  function initializeQRScanner() {
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+
+    video.classList.add('active');
+    video.style.display = 'block';
+
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } })
+      .then(function(stream) {
+        video.srcObject = stream;
+        video.play();
+        onAuthStateChanged(auth, (user) => {
+          if (user) {
+            detectarQRCode(video, canvas, context, user);
+          } else {
+            alert('Você precisa estar logado para escanear QR Codes.');
+          }
+        });
+      })
+      .catch(function(error) {
+        console.error('Erro ao acessar a câmera: ', error.name, error.message);
+        alert(`Erro ao acessar a câmera: ${error.name} - ${error.message}`);
+      });
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
     document.querySelector(".pt").addEventListener("click", () => {
       changeLanguage("pt");
@@ -87,53 +112,24 @@
       changeLanguage("en");
     });
 
-    // Add the event listener for the QR code button here
     document.getElementById('scanQRCodeButton').addEventListener('click', initializeQRScanner);
-
-    // Apply the saved language when the page loads
     applySavedLanguage();
   });
 
-  // Monitor authentication state
   onAuthStateChanged(auth, user => {
     const welcomeMessage = document.getElementById('userWelcomeMessage');
     const userPointsElement = document.getElementById('userPoints');
 
     if (user) {
-      // Fetch the welcome message in the selected language
       const savedLanguage = localStorage.getItem("selectedLanguage") || "pt";
       fetchTextFromFirestore("welcomeText", savedLanguage).then((welcomeText) => {
         welcomeMessage.textContent = `${welcomeText}, ${user.displayName || user.email}`;
       });
 
-      // Fetch user points using the user's UID
       checkUserPoints(user.uid, userPointsElement, user);
-
-      // Start QR code detection when button is clicked
-      document.getElementById('scanQRCodeButton').addEventListener('click', function() {
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const context = canvas.getContext('2d');
-        
-        // Add 'active' class to show the border
-        video.classList.add('active');
-        video.style.display = 'block';
-
-        // Access device's camera
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-          .then(function(stream) {
-            video.srcObject = stream;
-            video.play();
-            // Detect QR Code periodically
-            detectarQRCode(video, canvas, context, user);
-          })
-          .catch(function(error) {
-            console.error('Erro ao acessar a câmera: ', error);
-          });
-      });
     } else {
       welcomeMessage.textContent = 'Você não está logado.';
-      userPointsElement.textContent = ''; // Clear points when not logged in
+      userPointsElement.textContent = '';
     }
   });
 
